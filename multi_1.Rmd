@@ -1,0 +1,135 @@
+---
+title: "Visualizing a multivariate normal distribution"
+author: "Alireza Irani"
+date: "11/30/2022"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## library
+
+
+```{r cars}
+library(tidyverse)
+library(mvtnorm)
+library(plotly)
+library(MASS)
+library(ggplot2)
+```
+
+## Simulate multivariate normal data
+
+```{r , echo=FALSE}
+means <- c(0, 0)
+n <- 1000
+sigma <- matrix(c(4,2,2,3), ncol = 2)
+set.seed(42)
+x <- rmvnorm(n = n, mean = means, sigma = sigma)
+```
+
+```{r}
+df = data.frame(x)
+
+```
+
+```{r}
+names(df)
+```
+
+## Plotting
+
+### one dimention
+```{r}
+df %>% 
+  ggplot(aes(x = X1)) +
+  geom_density()
+```
+```{r}
+df %>% 
+  ggplot(aes(x = X2)) +
+  geom_density()
+
+```
+
+### two dimention
+
+```{r}
+p2 <- ggplot(df, aes(x = X1, y = X2)) +
+  geom_point(alpha = .5) +
+  geom_density_2d()
+p2
+
+```
+
+## Effect of covariance on plot
+
+```{r , echo=FALSE}
+means <- c(0, 0)
+n <- 1000
+sigma <- matrix(c(4,0,0,3), ncol = 2)
+set.seed(42)
+x1 <- rmvnorm(n = n, mean = means, sigma = sigma)
+```
+
+```{r}
+df1 = data.frame(x1)
+```
+
+```{r}
+p2 <- ggplot(df1, aes(x = X1, y = X2)) +
+  geom_point(alpha = .5) +
+  geom_density_2d()
+p2
+
+```
+
+### Geom binhex
+
+```{r}
+p3 <- ggplot(df, aes(x = X1, y = X2)) +
+  geom_point(alpha = .5) +
+  geom_bin2d() +
+  scale_fill_viridis_c()
+
+p3
+```
+
+```{r}
+(p <- plot_ly(df, x = ~X1, y = ~X2))
+```
+
+
+```{r}
+add_histogram2dcontour(p)
+```
+
+### 3D plot
+```{r}
+dens <- kde2d(df$X1, df$X2)
+
+plot_ly(x = dens$x,
+        y = dens$y,
+        z = dens$z) %>% add_surface()
+```
+
+###  3D Scatter
+```{r}
+df$dens <- dmvnorm(x = df)
+```
+
+
+```{r}
+p4 <- plot_ly(df, x = ~ X1, y = ~ X2, z = ~ dens,
+              marker = list(color = ~ dens,
+                            showscale = TRUE)) %>% 
+  add_markers()
+
+p4
+
+```
+
